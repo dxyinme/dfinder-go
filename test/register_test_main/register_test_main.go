@@ -1,14 +1,18 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/dxyinme/dfinder-go/discover"
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
+	addr := flag.String("addr", "0.0.0.2", "addr")
+	flag.Parse()
 	etcd_conf := discover.DefaultEtcdCfg
 	etcd_conf.Endpoints = []string{"127.0.0.1:2379"}
-	r, err := discover.NewRegisterWithEtcdCfg("testname1", "0.0.0.2", "dev", etcd_conf)
+	r, err := discover.NewRegisterWithEtcdCfg("testname1", *addr, "dev", etcd_conf)
 	if err != nil {
 		logrus.Error(err)
 	}

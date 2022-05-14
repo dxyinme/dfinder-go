@@ -22,7 +22,7 @@ func makePrefix(server, env string) string {
 type DiscoverImpl struct {
 	Cfg        clientv3.Config
 	mpMu       sync.RWMutex
-	Str2SvrDef map[string]SvrDef
+	Str2SvrDef map[string]*SvrDef
 	updMu      sync.Mutex
 	// 某个server 上一次update SvrDef 的时间
 	updDef map[string]int64
@@ -30,7 +30,7 @@ type DiscoverImpl struct {
 }
 
 func (di *DiscoverImpl) Init() (err error) {
-	di.Str2SvrDef = make(map[string]SvrDef)
+	di.Str2SvrDef = make(map[string]*SvrDef)
 	di.updDef = make(map[string]int64)
 	di.cli, err = clientv3.New(di.Cfg)
 	return
@@ -50,12 +50,7 @@ func (di *DiscoverImpl) GetAllAddrs(servername, env string) (addrs []string, err
 	if !ok {
 		return nil, errors.New("server not found")
 	}
-	addrs = make([]string, 0)
-	for _, v := range svrDef.AddrsMap {
-		addrs = append(addrs, v)
-	}
-
-	return addrs, nil
+	return svrDef.AddrsList(), nil
 }
 
 func (di *DiscoverImpl) updateAddr(servername, env string) {
@@ -70,7 +65,11 @@ func (di *DiscoverImpl) updateAddr(servername, env string) {
 			logrus.Error(err)
 		}
 		di.mpMu.Lock()
-		di.Str2SvrDef[servername] = NewSvrDef(servername, &(resp.Kvs))
+		if svr_def, ok := di.Str2SvrDef[servername]; !ok {
+			di.Str2SvrDef[servername] = NewSvrDef(servername, &resp.Kvs)
+		} else {
+			svr_def.Update(&resp.Kvs)
+		}
 		di.mpMu.Unlock()
 
 		di.updMu.Lock()
