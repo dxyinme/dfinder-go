@@ -31,6 +31,9 @@ func NewSvrDef(servername string, kvs *[]*mvccpb.KeyValue) *SvrDef {
 func (sd *SvrDef) Update(kvs *[]*mvccpb.KeyValue) {
 	sd.AddrsMapMu.Lock()
 	defer sd.AddrsMapMu.Unlock()
+	for k := range sd.AddrsMap {
+		delete(sd.AddrsMap, k)
+	}
 	for _, v := range *kvs {
 		sd.AddrsMap[string(v.Key)] = string(v.Value)
 	}
@@ -42,6 +45,15 @@ func (sd *SvrDef) AddrsList() (addrs []string) {
 	defer sd.AddrsMapMu.RUnlock()
 	for _, v := range sd.AddrsMap {
 		addrs = append(addrs, v)
+	}
+	return
+}
+
+func (sd *SvrDef) RandomAddr() (addr string) {
+	sd.AddrsMapMu.RLock()
+	defer sd.AddrsMapMu.RUnlock()
+	for _, v := range sd.AddrsMap {
+		return v
 	}
 	return
 }
