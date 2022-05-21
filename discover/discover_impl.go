@@ -15,7 +15,7 @@ const (
 )
 
 func makePrefix(server, env string) string {
-	return env + "/" + server
+	return env + "/" + server + "/"
 }
 
 type DiscoverImpl struct {
