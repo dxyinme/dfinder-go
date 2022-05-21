@@ -10,10 +10,11 @@ import (
 func main() {
 	addr := flag.String("addr", "0.0.0.2", "addr")
 	etcd_addr := flag.String("etcd_addr", "127.0.0.1:2379", "etcd addr")
+	svrname := flag.String("svrname", "testname1", "svr name")
 	flag.Parse()
 	etcd_conf := discover.DefaultEtcdCfg
 	etcd_conf.Endpoints = []string{*etcd_addr}
-	r, err := discover.NewRegisterWithEtcdCfg("testname1", *addr, "dev", etcd_conf)
+	r, err := discover.NewRegisterWithEtcdCfg(*svrname, *addr, "dev", etcd_conf)
 	if err != nil {
 		logrus.Error(err)
 	}
